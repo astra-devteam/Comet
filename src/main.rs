@@ -14,6 +14,12 @@ mod fs;
 mod shell;
 mod gui;
 
+// Fusion Kernel Architecture modules
+mod kernel_a;
+mod fusion;
+mod kernel_b;
+mod system;
+
 use vga::writer::{VgaWriter, Color};
 use shell::{Shell, CommandResult};
 
@@ -24,28 +30,26 @@ pub extern "C" fn _start() -> ! {
     vga.clear_screen();
     
     vga.write_str("╔════════════════════════════════════════╗\n");
-    vga.write_str("║         Welcome to Comet OS            ║\n");
-    vga.write_str("║     x86_64 Kernel - Version 0.1.0      ║\n");
+    vga.write_str("║       Welcome to Comet OS              ║\n");
+    vga.write_str("║  Fusion Kernel Architecture - v0.2.0   ║\n");
     vga.write_str("╚════════════════════════════════════════╝\n\n");
     
-    // Initialize CPU features
-    vga.write_str("[*] Initializing CPU features...\n");
-    arch::x86_64::init();
-    vga.write_str("[✓] CPU initialized\n\n");
+    vga.write_str("⸻ Boot Sequence ⸻\n\n");
     
-    // Initialize interrupt descriptor table
-    vga.write_str("[*] Setting up interrupt handlers...\n");
-    arch::x86_64::interrupts::init_idt();
-    vga.write_str("[✓] Interrupt handlers ready\n\n");
+    // Fusion Kernel Architecture Boot Sequence
+    // _start() → Kernel A → Fusion → Kernel B → System Distribution → Shell
     
-    // Initialize memory management
-    vga.write_str("[*] Initializing memory management...\n");
-    vga.write_str("[✓] Memory management ready\n\n");
+    // Initialize Kernel A (Core components)
+    kernel_a::init(&mut vga);
     
-    // Initialize filesystem
-    vga.write_str("[*] Initializing filesystem...\n");
-    fs::init();
-    vga.write_str("[✓] Filesystem ready\n\n");
+    // Initialize Fusion (Object/Handle Management)
+    fusion::init(&mut vga);
+    
+    // Initialize Kernel B (High-level Services)
+    kernel_b::init(&mut vga);
+    
+    // Initialize System Distribution Layer
+    system::init(&mut vga);
     
     vga.write_str("System initialization complete. Starting shell...\n");
     vga.write_str("Type 'help' for available commands\n");
