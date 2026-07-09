@@ -2,14 +2,20 @@
 #![no_main]
 #![feature(asm_const)]
 
+extern crate alloc;
+
 use core::panic::PanicInfo;
 
 mod vga;
 mod arch;
 mod mm;
 mod panic_handler;
+mod fs;
+mod shell;
+mod gui;
 
 use vga::writer::{VgaWriter, Color};
+use shell::{Shell, CommandResult};
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
@@ -36,17 +42,60 @@ pub extern "C" fn _start() -> ! {
     vga.write_str("[*] Initializing memory management...\n");
     vga.write_str("[✓] Memory management ready\n\n");
     
-    vga.write_str("System initialization complete. Entering main loop...\n");
+    // Initialize filesystem
+    vga.write_str("[*] Initializing filesystem...\n");
+    fs::init();
+    vga.write_str("[✓] Filesystem ready\n\n");
+    
+    vga.write_str("System initialization complete. Starting shell...\n");
+    vga.write_str("Type 'help' for available commands\n");
     vga.write_str("─".repeat(40));
     vga.write_str("\n\n");
     
-    // Set text color to green
-    vga.set_color(Color::Green, Color::Black);
-    vga.write_str("comet> ");
-    vga.set_color(Color::White, Color::Black);
-    vga.write_str("Ready\n");
+    // Start shell
+    shell_main();
+}
+
+fn shell_main() -> ! {
+    let mut shell = Shell::new();
+    let mut vga = VgaWriter::new();
     
-    hlt_loop();
+    loop {
+        shell.display_prompt();
+        
+        // Simple simulation of command input
+        // In a real system, this would wait for keyboard input
+        simulate_command_input(&mut shell, &mut vga);
+    }
+}
+
+fn simulate_command_input(shell: &mut Shell, vga: &mut VgaWriter) {
+    // Display help text on first run
+    vga.write_str("help\n");
+    
+    let cmd = shell.parse_command("help");
+    let result = shell.execute_command(cmd);
+    
+    match result {
+        CommandResult::Success(msg) => {
+            if !msg.is_empty() {
+                vga.write_str(&msg);
+            }
+        }
+        CommandResult::Error(err) => {
+            vga.set_color(Color::Red, Color::Black);
+            vga.write_str("Error: ");
+            vga.set_color(Color::White, Color::Black);
+            vga.write_str(&err);
+            vga.write_str("\n");
+        }
+        CommandResult::Exit => {
+            vga.write_str("Goodbye!\n");
+            hlt_loop();
+        }
+    }
+    
+    vga.write_str("\n");
 }
 
 pub fn hlt_loop() -> ! {
