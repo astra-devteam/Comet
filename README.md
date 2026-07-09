@@ -174,4 +174,4 @@ cargo test --lib gui
 
 **Version**: 0.1.0  
 **Architecture**: x86_64  
-**License**: MIT
+**License**: Astra public License
