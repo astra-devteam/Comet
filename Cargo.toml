@@ -10,10 +10,17 @@ spinning_top = "0.3"
 x86_64 = "0.15"
 uart_16550 = "0.3"
 
-[target.'cfg(target_os = "none")']
+[target.'cfg(target_os = "none")'.dependencies]
+core = { version = "1.0", optional = true }
+
+[target.'cfg(target_os = "none")'.build-dependencies]
+
+[target.'cfg(target_os = "none")']  
 rustflags = [
     "-C", "link-arg=-nostartfiles",
     "-C", "relocation-model=pic",
+    "-C", "link-arg=-z",
+    "-C", "link-arg=max-page-size=0x1000",
 ]
 
 [[bin]]
